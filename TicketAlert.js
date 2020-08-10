@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Notification WIP
 // @namespace    https://billing.apexminecrafthosting.com/admin/supporttickets.php
-// @version      0.0.3
+// @version      0.0.4
 // @description  do stuff i guess
 // @author       Lark, Ritty
 // @match        https://billing.apexminecrafthosting.com/admin/supporttickets.php*
@@ -32,7 +32,7 @@
 
     //Checkbox label
     var label = document.createElement("label");
-    label.textContent = "Notification enabled";
+    label.textContent = " Notification enabled";
     sidebar.appendChild(label);
 	
     //Volume slider
