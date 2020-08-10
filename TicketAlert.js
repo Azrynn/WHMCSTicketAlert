@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         Notification WIP
 // @namespace    https://billing.apexminecrafthosting.com/admin/supporttickets.php
-// @version      0.0.1
+// @version      0.0.3
 // @description  do stuff i guess
-// @author       Lark
+// @author       Lark, Ritty
 // @match        https://billing.apexminecrafthosting.com/admin/supporttickets.php*
 // @grant        none
 // ==/UserScript==
@@ -15,9 +15,6 @@
 	
     //Add audio alert
     var alert = document.createElement('audio');
-
-    //Set audio
-    alert.volume = 0.15;
 
     //Uncomment the alert you want for the time being, until I implement a dropdown
     //Enemy alert
@@ -37,6 +34,15 @@
     var label = document.createElement("label");
     label.textContent = "Notification enabled";
     sidebar.appendChild(label);
+	
+    //Volume slider
+    var slidername = document.createElement("label");
+    slidername.textContent = "Volume: ";
+    sidebar.appendChild(slidername);
+
+	var slider = document.createElement("input");
+	slider.type = "range";
+    sidebar.appendChild(slider);
 
     //Get if it's checked from localStorage. If it doesn't exist, default as checked and save to localStorage for persistency.
     var notifEnabled = JSON.parse(window.localStorage.getItem("isChecked"));
@@ -63,6 +69,26 @@
     }
     });
     
+    //Get volume from localStorage. If it doesn't exist, default as 50 and save to localStorage for persistency.
+    var sliderValue = JSON.parse(window.localStorage.getItem("sliderVol"));
+    if (sliderValue == null) {
+        sliderValue = 50;
+        alert.volume = 0.5;
+        slidername.textContent = "Volume: " + 50;
+        window.localStorage.setItem("sliderVol", 50);
+    }
+    else if (sliderValue != null) {
+        slider.value = sliderValue;
+        alert.volume = sliderValue / 100;
+        slidername.textContent = "Volume: " + sliderValue;
+    }
+
+    //Set volume number and write to local storage and slider is moved
+    slider.oninput = function() {
+        alert.volume = sliderValue / 100;
+        slidername.textContent = "Volume: " + this.value;
+        window.localStorage.setItem("sliderVol", this.value);
+    }
 	
 	//Dropdown selection menu is WIP
 
