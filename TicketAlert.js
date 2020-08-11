@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WHMCS Notifications
 // @namespace    https://billing.apexminecrafthosting.com/admin/supporttickets.php
-// @version      0.2.2
+// @version      0.3
 // @description  Adds customisable notifications to the Ticket page on WHMCS
 // @author       Lark, Ritty
 // @match        https://billing.apexminecrafthosting.com/admin/supporttickets.php*
@@ -16,11 +16,15 @@
     //Add audio alert
     var alert = document.createElement('audio');
 
+    //
+    //PAGE LAYOUT SETUP
+    //
+
     //Find the sidebar and add a break at the bottom
     var sidebar = document.getElementById("sidebar");
-	sidebar.appendChild(document.createElement("br"));
-	
-	//Checkbox
+    sidebar.appendChild(document.createElement("br"));
+
+    //Checkbox
     var checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     sidebar.appendChild(checkbox);
@@ -42,16 +46,75 @@
     // Dropdown
     var dropdown = document.createElement("select");
     var soundValue = window.localStorage.getItem("sound");
+    dropdown.className = "form-control input-sm";
     dropdown.appendChild(new Option("Blip Alert", 1, true, soundValue == 1));
     dropdown.appendChild(new Option("Woop Woop!", 2, false, soundValue == 2));
     dropdown.appendChild(new Option("Metal Gear Alert", 3, false, soundValue == 3));
+    dropdown.appendChild(new Option("Custom Sound", 4, false, soundValue == 4));
     sidebar.appendChild(dropdown);
 
+    // Popup
+    function createPopup(){
+        // Overlay and Popup
+        var overlay = document.createElement('div');
+        overlay.style.backgroundColor = "rgba(0,0,0,0.5)";
+        overlay.style.position = "fixed";
+        overlay.style.height = "100%";
+        overlay.style.width = "100%";
+        overlay.style.top = "0%";
+        overlay.style.left = "0%";
+        overlay.style.zIndex = "2";
+
+        var popup = document.createElement('div');
+        popup.style.backgroundColor = "#F1F0E7";
+        popup.style.border = "4px solid #E2E0CD";
+        popup.style.position = "fixed";
+        popup.style.height = "20%";
+        popup.style.width = "30%";
+        popup.style.top = "40%";
+        popup.style.left = "35%";
+        overlay.appendChild(popup)
+
+        // Title
+        var pTitle = document.createElement("text");
+        pTitle.textContent = "Enter a Download URL for a Custom Sound";
+        popup.appendChild(pTitle);
+
+        var pBreak = document.createElement("br");
+        popup.appendChild(pBreak);
+
+        var pForm = document.createElement("input");
+        pForm.className = "form-control";
+
+        var soundURL = window.localStorage.getItem("soundURL");
+        pForm.value = soundURL;
+        popup.appendChild(pForm);
+
+        var pSubmit = document.createElement("button");
+        pSubmit.className = "btn btn-default";
+        pSubmit.innerHTML = "Submit";
+        pSubmit.onclick = function (e) {
+            window.localStorage.setItem("soundURL", pForm.value);
+            alert.setAttribute("src", pForm.value);
+            alert.play();
+            overlay.parentNode.removeChild(overlay);
+        };
+        popup.appendChild(pSubmit);
+
+        document.body.appendChild(overlay);
+    }
+
+    //
+    //VARIABLE SETUP
+    //
+
     // Set alert based on currently selected in Dropdown
-    if (soundValue == null) {
+    if (soundValue === null) {
         window.localStorage.setItem("sound",1);
         alert.setAttribute('src', 'https://media.vocaroo.com/mp3/jsQgatEJ1FZ');
     }
+
+    // Set sound function
     function setSound(soundValue) {
         if (soundValue == 1) {
             alert.setAttribute('src', 'https://media.vocaroo.com/mp3/jsQgatEJ1FZ');
@@ -68,12 +131,12 @@
 
     //Get if it's checked from localStorage. If it doesn't exist, default as checked and save to localStorage for persistency.
     var notifEnabled = JSON.parse(window.localStorage.getItem("isChecked"));
-    if (notifEnabled == null) {
+    if (notifEnabled === null) {
         notifEnabled = true;
         window.localStorage.setItem("isChecked", "true");
         checkbox.setAttribute("checked", "");
     }
-    else if (notifEnabled == true) {
+    else if (notifEnabled === true) {
         checkbox.setAttribute("checked", "");
     }
 
@@ -93,13 +156,13 @@
 
     //Get volume from localStorage. If it doesn't exist, default as 50 and save to localStorage for persistency.
     var sliderValue = window.localStorage.getItem("sliderVol");
-    if (sliderValue == null) {
+    if (sliderValue === null) {
         sliderValue = 50;
         alert.volume = 0.5;
         slidername.textContent = "Volume: " + 50;
         window.localStorage.setItem("sliderVol", 50);
     }
-    else if (sliderValue != null) {
+    else if (sliderValue !== null) {
         slider.value = sliderValue;
         alert.volume = sliderValue / 100;
         slidername.textContent = "Volume: " + sliderValue;
@@ -107,18 +170,25 @@
 
     //Set volume number and write to local storage and slider is moved
     slider.oninput = function() {
-		sliderValue = this.value;
+        sliderValue = this.value;
         alert.volume = sliderValue / 100;
         slidername.textContent = "Volume: " + this.value;
         window.localStorage.setItem("sliderVol", sliderValue);
     };
 
+
+
     //Dropdown set up audio when input is detected
     dropdown.oninput = function() {
         soundValue = dropdown.options[dropdown.selectedIndex].value;
         window.localStorage.setItem("sound",soundValue);
-        setSound(soundValue);
-        alert.play();
+        if(soundValue == 4) {
+            createPopup();
+        }
+        else {
+            setSound(soundValue);
+            alert.play();
+        }
     };
 
     //Check if there are any tickets, then do the notifications accordingly.
@@ -152,7 +222,7 @@
 
     //Save ticket to local cache
     function saveToLocalStorage(tickets) {
-        var date = new Date;
+        var date = new Date();
         var timestamp = date.getTime();
         window.localStorage.setItem('tickets', JSON.stringify(tickets));
         window.localStorage.setItem('ticketsTimestamp', timestamp);
@@ -166,11 +236,11 @@
         var oldTickets = JSON.parse(window.localStorage.getItem('tickets'));
 
         //Don't play alert on first page launch, but populate the local storage with the current tickets.
-        if (oldTickets == null) {
+        if (oldTickets === null) {
             saveToLocalStorage(newTickets);
             console.log("Created starting TicketsArray + timestamp!");
             return 0;
-        };
+        }
         // Check if there have been any updates, return true or false, and don't forget to
         // Loop through the newTickets array, compare to oldTickets.
         // Conditions:
@@ -209,6 +279,6 @@
         saveToLocalStorage(newTickets);
         console.log("No new or workable tickets.");
         return 0;
-    };
+    }
 
 })();
