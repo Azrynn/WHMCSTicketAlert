@@ -2,12 +2,12 @@
 
   "manifest_version": 2,
   "name": "WHMCS Notifier",
-  "version": "0.3",
+  "version": "0.4.1",
 
   "description": "Natively runs Lark and Ritty's Notifier script",
   
   "icons": {
-    "48": "48.png"
+    "48": "icons/48.png"
   },
 
   "content_scripts": [
@@ -15,6 +15,14 @@
       "matches": ["*://billing.apexminecrafthosting.com/admin/supporttickets.php*"],
       "js": ["notif.js"]
     }
+  ],
+  
+  
+  "web_accessible_resources": [
+    "icons/favicon.ico",
+	"sounds/blip.mp3",
+	"sounds/woop.mp3",
+	"sounds/enemy.mp3"
   ]
 
 }
